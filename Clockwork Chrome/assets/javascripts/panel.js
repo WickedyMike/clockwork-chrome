@@ -70,6 +70,10 @@ Clockwork.controller('PanelController', function($scope, $http, toolbar)
 
 		sendMessage = chrome.runtime.sendMessage;
 
+		if (chrome.devtools.panels.themeName === 'dark') {
+			$('body').addClass('dark')
+		}
+
 		chrome.devtools.network.onRequestFinished.addListener(function(request)
 		{
 			var headers = request.response.headers;
@@ -95,16 +99,19 @@ Clockwork.controller('PanelController', function($scope, $http, toolbar)
 					uri.query(path[1]);
 				}
 
-				chrome.extension.sendRequest({action: 'getJSON', url: uri.toString(), headers: requestHeaders}, function(data){
-					$scope.$apply(function(){
+				chrome.runtime.sendMessage(
+					{ action: 'getJSON', url: uri.toString(), headers: requestHeaders },
+					function (data){
+						$scope.$apply(function(){
 						try {
 						$scope.addRequest(requestId.value, data, request.request.url.toString());
 						} catch (e) {
 							error('Failed adding request for ' + requestId + ' (uri: ' + uri + ')', e.message);
 							throw e;
 						}
-					});
-				});
+						});
+					}
+				);
 			}
 		});
 	};
